@@ -13,7 +13,7 @@ pipeline {
         DOCKER_CREDENTIAL_ID = 'dockerhub-id'
         GITHUB_CREDENTIAL_ID = 'github-id'
         KUBECONFIG_CREDENTIAL_ID = 'demo-kubeconfig'
-        REGISTRY = 'docker.io'
+        REGISTRY = '172.16.1.5:31514'
         DOCKERHUB_NAMESPACE = 'feeeng'
         GITHUB_ACCOUNT = 'Feeeenng'
         APP_NAME = 'devops-java-sample'
@@ -35,15 +35,30 @@ pipeline {
             }
         }
 
+          stage('sonarqube analysis') {
+          steps {
+            container ('maven') {
+              withCredentials([string(credentialsId: "$SONAR_CREDENTIAL_ID", variable: 'SONAR_TOKEN')]) {
+                withSonarQubeEnv('sonarqube') {
+                 sh "mvn sonar:sonar   -o -Dmaven.test.skip=true -gs `pwd`/configuration/settings.xml  -Dsonar.login=$SONAR_TOKEN"
+                }
+              }
+             
+             
+            }
+          }
+        }
+
+
         stage ('build & push') {
             steps {
                 container ('maven') {
                     sh 'mvn -o -Dmaven.test.skip=true -gs `pwd`/configuration/settings.xml clean package'
                     sh 'docker build -f Dockerfile-online -t $REGISTRY/$DOCKERHUB_NAMESPACE/$APP_NAME:SNAPSHOT-$BRANCH_NAME-$BUILD_NUMBER .'
-                    withCredentials([usernamePassword(passwordVariable : 'DOCKER_PASSWORD' ,usernameVariable : 'DOCKER_USERNAME' ,credentialsId : "$DOCKER_CREDENTIAL_ID" ,)]) {
-                        sh 'echo "$DOCKER_PASSWORD" | docker login $REGISTRY -u "$DOCKER_USERNAME" --password-stdin'
+                   // withCredentials([usernamePassword(passwordVariable : 'DOCKER_PASSWORD' ,usernameVariable : 'DOCKER_USERNAME' ,credentialsId : "$DOCKER_CREDENTIAL_ID" ,)]) {
+                 //       sh 'echo "$DOCKER_PASSWORD" | docker login $REGISTRY -u "$DOCKER_USERNAME" --password-stdin'
                         sh 'docker push  $REGISTRY/$DOCKERHUB_NAMESPACE/$APP_NAME:SNAPSHOT-$BRANCH_NAME-$BUILD_NUMBER'
-                    }
+                //    }
                 }
             }
         }
