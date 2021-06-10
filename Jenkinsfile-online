@@ -35,19 +35,19 @@ pipeline {
             }
         }
 
-          stage('sonarqube analysis') {
-          steps {
-            container ('maven') {
-              withCredentials([string(credentialsId: "$SONAR_CREDENTIAL_ID", variable: 'SONAR_TOKEN')]) {
-                withSonarQubeEnv('sonarqube') {
-                 sh "mvn sonar:sonar   -o -Dmaven.test.skip=true -gs `pwd`/configuration/settings.xml  -Dsonar.login=$SONAR_TOKEN"
-                }
-              }
+    //      stage('sonarqube analysis') {
+     //     steps {
+     //       container ('maven') {
+    //          withCredentials([string(credentialsId: "$SONAR_CREDENTIAL_ID", variable: 'SONAR_TOKEN')]) {
+     //           withSonarQubeEnv('sonarqube') {
+     //            sh "mvn sonar:sonar   -o -Dmaven.test.skip=true -gs `pwd`/configuration/settings.xml  -Dsonar.login=$SONAR_TOKEN"
+     //           }
+     //         }
              
              
-            }
-          }
-        }
+     /  /     }
+       / /  }
+    / //   }
 
 
         stage ('build & push') {
